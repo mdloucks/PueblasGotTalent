@@ -1,0 +1,6 @@
+.ipynb_checkpoints
+.vscode
+.DS_Store
+# don't send any of the wav or mp4 data. That can be stored in OneDrive
+audio/*
+*.csv
