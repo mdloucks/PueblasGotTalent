@@ -1,3 +1,7 @@
+This directory contains functions relating to downloading and preprocessing the
+SVQTD dataset
+
+
 Email from dataset providers:
 
 Dear Matthew, 
