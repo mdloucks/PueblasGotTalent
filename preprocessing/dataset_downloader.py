@@ -8,7 +8,7 @@ from pytube import YouTube
 import pytube
 import urllib
 
-from preprocessing.constants import CSV_DIR, TEST_DIR_RAW, TRAIN_DIR_RAW
+from constants import CSV_DIR, TEST_DIR_RAW, TRAIN_DIR_RAW
 
 def download_csv(csv_path, output_dir):
     """Download the videos of the given csv file to the given download folder
@@ -91,7 +91,6 @@ def download_video(video_id: str, output_dir: str):
     except KeyboardInterrupt:
         raise Exception('keyboard interrupt')
         
-
 
 
 if __name__ == '__main__':

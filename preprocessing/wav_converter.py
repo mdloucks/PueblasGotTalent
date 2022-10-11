@@ -4,8 +4,8 @@
 import os
 import glob
 
-from preprocessing.constants import TEST_DIR_RAW, TRAIN_DIR_RAW
-from preprocessing.constants import TEST_DIR_WAV, TRAIN_DIR_WAV
+from constants import TEST_DIR_RAW, TRAIN_DIR_RAW
+from constants import TEST_DIR_WAV, TRAIN_DIR_WAV
 
 def convert_to_wav(input_dir, output_dir):
     """Convert all mp4 files in a given directory to wav in a different
@@ -20,15 +20,17 @@ def convert_to_wav(input_dir, output_dir):
 
     for i, filename in enumerate(input_dir_list):
 
-        print(f'\r{i} out of {len(input_dir_list)}...', end='', flush=True)
+        print(f'\r{input_dir} to {output_dir}: {i} out of {len(input_dir_list)}...', end='', flush=True)
 
         filename_root = os.path.splitext(filename)[0]
         filename_wav = f"{filename_root}.wav"
 
-        # execute command (omiting messages)
-        os.system(f'ffmpeg -i {os.path.join(input_dir, filename)} \
+        command = f'ffmpeg -y -i {os.path.join(input_dir, filename)} \
                     {os.path.join(output_dir, filename_wav)} \
-                    -loglevel error')
+                    -loglevel error'
+
+        # execute command (omiting messages)
+        os.system(command)
 
 
 
