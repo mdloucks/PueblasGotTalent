@@ -90,7 +90,8 @@ def download_video(video_id: str, output_dir: str):
         return False
     except KeyboardInterrupt:
         raise Exception('keyboard interrupt')
-        
+    except Exception:
+        return False
 
 
 if __name__ == '__main__':

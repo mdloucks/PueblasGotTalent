@@ -2,12 +2,16 @@
 # Trim down all of the wav files to their desired size
 # .................................................................
 
+from ctypes import Union
 import os
 import time
 
 from constants import TEST_DIR_RAW, TRAIN_DIR_RAW, CSV_DIR
 from constants import TEST_DIR_WAV, TRAIN_DIR_WAV
 
+from pathlib import Path
+
+import re
 
 def trim_wav(file_path: str, start: float, end: float):
     """trim the wav of a given file path
@@ -19,43 +23,45 @@ def trim_wav(file_path: str, start: float, end: float):
     """
 
 
-def trim_dir(input_dir: str):
+def trim_dir(input_dir: str, del_originals = True):
     """Trim all of the files within a given directory using the csv specified
     in constants.py
+
+    In addition this function will also purge all of the original wav files 
+    that it converts in order to converve space. 
 
     Args:
         input_dir (str): directory to trim
     """
 
     with open(os.path.join(CSV_DIR, 'seg_time_lists.csv'), 'r') as f:
-
         lines = f.readlines()
 
-        cols = {}
+    cols = {}
 
-        for i, line in enumerate(lines):
+    for i, line in enumerate(lines):
 
-            line = line.split(',')
+        line = line.split(',')
 
-            # make a column-to-index dict
-            if i == 0:
-                cols = {col.strip('\n'): j for j, col in enumerate(line)}
-                continue
+        # make a column-to-index dict
+        if i == 0:
+            cols = {col.strip('\n'): j for j, col in enumerate(line)}
+            continue
 
-            filename = f"{line[cols['name']]}.wav"
-            seg_num = line[cols['num']]
-            start = float(line[cols['time_start']])
-            end = float(line[cols['time_end']])
-            filepath = os.path.join(input_dir, filename)
+        filename = f"{line[cols['name']]}.wav"
+        seg_num = line[cols['num']]
+        start = float(line[cols['time_start']])
+        end = float(line[cols['time_end']])
+        filepath = os.path.join(input_dir, filename)
 
-            print(f'\r{i} out of {len(lines) - 1}...', end='', flush=True)
+        print(f'\r{i} out of {len(lines) - 1}...', end='', flush=True)
 
-            trim_wav(filepath, seg_num, start, end)
+        trim_wav(filepath, seg_num, start, end)
 
-            # then delete the original file (to reduce clutter and disk usage)
-            fullpath = os.path.join(os.getcwd(), filepath)
-            if os.path.isfile(fullpath):
-                os.system(f'rm {fullpath}')
+
+    if del_originals:
+        print('deleting originals...')
+        del_wavs(input_dir)
 
 
 def trim_wav(filepath: str, seg_num: int, start: float, end: float):
@@ -68,7 +74,7 @@ def trim_wav(filepath: str, seg_num: int, start: float, end: float):
         end (float): end time in seconds
     """
 
-    if not(os.path.isfile(filepath)):
+    if not (os.path.isfile(filepath)):
         return
 
     duration = end - start
@@ -82,31 +88,17 @@ def trim_wav(filepath: str, seg_num: int, start: float, end: float):
     os.system(command)
 
 
-def del_wavs(input_dir: str, del_type='original'):
-    """Purge a directory of original wav files indicated by the lack of a 
-    -{number}.wav suffix.
+def del_wavs(input_dir: str):
+    
+    for filename in os.listdir(input_dir):
 
-    Args:
-        input_dir (str): name of input directory
-    """
+        pattern = r"(-[0-9]{1,2}.wav)$"
+        if len(re.findall(pattern, filename)) == 0:
+            full_path = os.path.join(os.getcwd(), input_dir, filename)
+            command = f'rm {full_path}'
 
-    for file in os.listdir(input_dir):
-        name = file.split('/')[0][:-4]
-
-        # delete 'original'
-        if del_type == 'original' and not(
-                name[-1].isnumeric()) and not(name[-2] == '-'):
-            print(f'del {file}')
-            os.system(f'rm {os.path.join(input_dir, file)}')
-            # delete 'new'
-        elif del_type == 'new' and name[-1].isnumeric() and name[-2] == '-':
-            print(f'del {file}')
-            os.system(f'rm {os.path.join(input_dir, file)}')
-
-
+            os.system(command)
 
 if __name__ == '__main__':
-    # del_wavs(TRAIN_DIR_WAV, 'new')
-
     trim_dir(TRAIN_DIR_WAV)
     trim_dir(TEST_DIR_WAV)
