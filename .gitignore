@@ -4,3 +4,12 @@
 # don't send any of the wav or mp4 data. That can be stored in OneDrive
 audio/*
 *.csv
+*.index
+*.cpython
+*.pb
+models/*
+*.model
+*.ipynb_checkpoints
+.empty
+__pycache__
+*.pyc

@@ -4,12 +4,12 @@
 
 import librosa
 from pathlib import Path
-from constants import TRAIN_DIR, TEST_DIR, CSV_DIR
 
 import os
 
+import numpy as np
 
-def load_dataset(wav_dir: Path, csv_path: Path):
+def load_dataset(wav_dir: Path, csv_path: Path, sample_limit=None):
     """loads the dataset using librosa by loading the raw wav data. This
     can then be converted into other formats as desired.
 
@@ -20,12 +20,18 @@ def load_dataset(wav_dir: Path, csv_path: Path):
     Yields:
         tuple: x, y tuple with raw file data and audio labels
     """
+    
+    print('loading dataset...')
 
     with open(csv_path, 'r') as f:
         lines = f.readlines()
 
     label_keys = ['Head', 'Chest',	'Openess', 'Breathy',
                    'Vibrato', 'Front', 'Back']
+
+    y_lst = []
+    sr_lst = []
+    labels_lst = []
 
     for i, line in enumerate(lines):
         line = line.split(',')
@@ -35,42 +41,39 @@ def load_dataset(wav_dir: Path, csv_path: Path):
             cols = {col.strip('\n'): j for j, col in enumerate(line)}
             continue
 
+        
         video_id = line[cols['Link']]
         seg_num = line[cols['seg_num']]
         filename = f"{video_id}-{seg_num}.wav"
         fullpath = Path(os.getcwd(), wav_dir, filename)
 
-        labels = [line[cols[label_key]] for label_key in label_keys]
-        print(labels)
+        labels = np.array([float(line[cols[label_key]]) for label_key in label_keys], dtype=np.float32)
 
         if not (fullpath.exists()):
             continue
 
-        file = load_file(fullpath)
-        
-        yield file, labels
+        print(f'\r{i} out of {len(lines) - 1}...', end='', flush=True)
 
+        try:
+            y, sr = librosa.load(fullpath, mono=True)
+            # problem with audio file
+        except ValueError:
+            continue
 
-def load_file(filepath: Path):
-    """load the given file using librosa
+        y_lst.append(y)
+        sr_lst.append(sr)
+        labels_lst.append(labels)
 
-    Args:
-        filepath (Path): filepath
+        if sample_limit:
+            if i >= sample_limit:
+                break
 
-    Returns:
-        np.array: np array containing audio data.
-    """
-    if not (filepath.exists()):
-        return False
+    
+    print('\ndataset loaded')
 
-    file = librosa.load(filepath, mono=True)
+        # y_lst = np.array(y_lst, dtype=np.float32),
+        # sr_lst = np.array(sr_lst, dtype=np.float32),
+        # labels_lst = np.array(labels_lst, np.float32)
 
-    return file
+    return y_lst, sr_lst, labels_lst
 
-
-csv_path = Path(CSV_DIR, 'train.csv')
-data = load_dataset(TRAIN_DIR, csv_path)
-
-for d in data:
-    print(d)
-    break
