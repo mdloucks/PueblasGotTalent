@@ -61,3 +61,10 @@ def spectrogram(samples, sample_rate, stride_ms = 10.0,
     ind = np.where(freqs <= max_freq)[0][-1] + 1
     specgram = np.log(fft[:ind, :] + eps)
     return specgram
+
+
+# def melspectrogram(y, sr):
+#     S = librosa.feature.melspectrogram(y, sr=sr, fmax=8e3)
+#     S_dB = librosa.power_to_db(S, ref=np.max)
+
+#     print(spectrogram.shape, S_dB.shape)

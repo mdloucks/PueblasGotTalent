@@ -49,15 +49,15 @@ class ConvulutionalNetwork():
         model.add(Dropout(0.5))
         model.add(Dense(128, activation=tf.nn.relu))
         model.add(Dropout(0.4))
-        model.add(Dense(7))
+        model.add(Dense(1))
 
-        optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+        optimizer = tf.keras.optimizers.Adam(learning_rate=0.005)
 
-        model.compile(loss='categorical_crossentropy',
+        model.compile(loss='mean_squared_error',
                       optimizer=optimizer,
-                      metrics=['accuracy'])
+                      metrics=['mean_absolute_error'])
 
-        history = model.fit(X, y, batch_size=4, epochs=self.n_epochs,
+        history = model.fit(X, y, batch_size=8, epochs=self.n_epochs,
                             validation_split=0.2)
 
         path = PurePath(MODEL_DIR, filename)
