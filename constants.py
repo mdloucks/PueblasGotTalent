@@ -8,3 +8,8 @@ TEST_DIR = 'audio/SVQTD/test/wav/'
 CSV_DIR = 'SVQTD/'
 
 MODEL_DIR = 'models/'
+MAX_FREQ = 3e3
+MIN_FREQ = 100
+
+IMG_SIZE_X = 128
+IMG_SIZE_Y = 600
