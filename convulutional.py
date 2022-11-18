@@ -13,70 +13,92 @@ from constants import MODEL_DIR, IMG_SIZE_X, IMG_SIZE_Y
 
 class ConvulutionalNetwork():
 
-    def __init__(self):
+    def __init__(self, model=None, n_epochs=5, metrics=['mean_absolute_error']):
+        """Construct conv network
 
-        self.n_epochs = 30
+        Args:
+            model (tensorflow.keras.models.Sequential, optional): pretrained model. Defaults to None.
+            n_epochs (int, optional): number of epochs. Defaults to 10.
+            metrics (list, optional): metrics to use. Defaults to ['mean_absolute_error'].
+        """
+        self.n_epochs = n_epochs
+        self.metrics=metrics
 
-    def fit(self, generator, filename=None):
+        if model is None:
+            self.create_model()
+        else:
+            self.model = model
+            
 
-        model = Sequential()
+    def create_model(self):
+        self.model = Sequential()
 
         input_shape = (IMG_SIZE_X, IMG_SIZE_Y, 1)
 
-        # stack the inputs
-        # X = tf.stack(X)
-        # y = tf.stack(y)
-
-        model.add(tf.keras.layers.Conv2D(64, (32, 32),
+        self.model.add(tf.keras.layers.Conv2D(64, (5, 5),
                                          kernel_initializer='he_normal', input_shape=input_shape))
-        model.add(tf.keras.layers.BatchNormalization())
-        model.add(tf.keras.layers.Activation('relu'))
-        model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2)))
+        self.model.add(tf.keras.layers.BatchNormalization())
+        self.model.add(tf.keras.layers.Activation('relu'))
+        self.model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2)))
+        self.model.add(Dropout(0.6))
 
-        model.add(tf.keras.layers.Conv2D(
-            64, (24, 24), kernel_initializer='he_normal'))
-        model.add(tf.keras.layers.BatchNormalization())
-        model.add(tf.keras.layers.Activation('relu'))
-        model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2)))
+        self.model.add(tf.keras.layers.Conv2D(
+            64, (3, 3), kernel_initializer='he_normal'))
+        self.model.add(tf.keras.layers.BatchNormalization())
+        self.model.add(tf.keras.layers.Activation('relu'))
+        self.model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2)))
+        self.model.add(Dropout(0.6))
 
-        model.add(tf.keras.layers.Conv2D(
-            128, (10, 10), kernel_initializer='he_normal'))
-        model.add(tf.keras.layers.BatchNormalization())
-        model.add(tf.keras.layers.Activation('relu'))
-        model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2)))
+        self.model.add(tf.keras.layers.Conv2D(
+        32, (2, 2), kernel_initializer='he_normal'))
+        self.model.add(tf.keras.layers.BatchNormalization())
+        self.model.add(tf.keras.layers.Activation('relu'))
+        self.model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2)))
+        self.model.add(Dropout(0.6))
 
         # this converts our 3D feature maps to 1D feature vectors
-        model.add(Flatten())
-        model.add(Dense(64, activation=tf.nn.relu))
-        model.add(Dropout(0.5))
-        model.add(Dense(100, activation=tf.nn.relu))
-        model.add(Dropout(0.4))
-        model.add(Dense(1))
+        self.model.add(Flatten())
+        self.model.add(Dense(64, activation=tf.nn.relu))
+        self.model.add(Dropout(0.7))
+        self.model.add(Dense(32, activation=tf.nn.relu))
+        self.model.add(Dropout(0.4))
+        self.model.add(Dense(32, activation=tf.nn.relu))
+        self.model.add(Dropout(0.7))
+        self.model.add(Dense(1, kernel_initializer='normal'))
 
-        optimizer = tf.keras.optimizers.Adam(learning_rate=0.005)
+        optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
 
-        metric = 'mean_absolute_error'
-
-        model.compile(loss='mean_squared_error',
+        self.model.compile(loss='mse',
                       optimizer=optimizer,
-                      metrics=[metric])
+                      metrics=self.metrics)
 
-        callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=5,
+
+    def fit(self, generator, filename='out.model'):
+        """Fit self.model using the given generator
+
+        Args:
+            generator (generator): data generator or list
+            filename (str, optional): filename to save to. Defaults to out.model.
+        """
+
+        callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=3,
                                                     restore_best_weights=True)
 
-        history = model.fit(generator, epochs=self.n_epochs,
+        history = self.model.fit(generator, epochs=self.n_epochs,
                             callbacks=[callback])
 
         path = PurePath(MODEL_DIR, filename)
 
         print("saving to", path, "...")
-        model.save(path)
+        self.model.save(path)
 
         print("finished")
+        
+        # plot history of all metrics
+        for metric in self.metrics:
+            plt.plot(range(len(history.history[metric])),
+                    history.history[metric][:self.n_epochs], color="red")
+            plt.xlabel("epochs")
+            plt.ylabel(metric)
 
-        plt.plot(range(len(history.history[metric])),
-                 history.history[metric][:self.n_epochs], color="red")
-        plt.xlabel("epochs")
-        plt.ylabel(metric)
-
-        plt.show()
+            plt.show()

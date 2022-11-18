@@ -127,6 +127,10 @@ plt.colorbar()
 plt.tight_layout()
 plt.show()
 
-sf.write('vocal_separation/foreground.wav', S_foreground, sr)
+# convert from spectrograms back to freq array so we can write it to disk
+D_foreground = S_foreground * phase
+y_foreground = librosa.istft(D_foreground)
+
+sf.write('vocal_separation/foreground.wav', y_foreground, sr)
 sf.write('vocal_separation/background.wav', S_background, sr)
 sf.write('vocal_separation/original.wav', S_full, sr)

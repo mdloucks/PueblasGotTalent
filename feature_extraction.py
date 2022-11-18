@@ -10,7 +10,6 @@ import numpy as np
 from constants import MAX_FREQ, MIN_FREQ
 
 
-
 def melspectrogram(y, sr, disp=False):
     sgram = librosa.stft(y)
     sgram_mag, _ = librosa.magphase(sgram)

@@ -9,7 +9,9 @@ import librosa
 
 from constants import IMG_SIZE_X, IMG_SIZE_Y
 
-from sklearn.preprocessing import minmax_scale
+from keras import backend as K
+
+from sklearn.preprocessing import StandardScaler
 
 
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -22,6 +24,8 @@ class SpectrogramGenerator(keras.utils.Sequence):
         self.batch_size = batch_size
         self.image_size = image_size
         self.work_dir = Path(".").parent.absolute()
+        self.num_classes = 4
+        self.shuffle = True
 
 
     def __len__(self):
@@ -44,9 +48,14 @@ class SpectrogramGenerator(keras.utils.Sequence):
 
             spectrogram = self._preprocess_audio(y, sr)
 
-            # normalize values between 0 and 1
-            spectrogram = minmax_scale(spectrogram, feature_range=(0,1))
+            # standardize
+            scaler = StandardScaler()
+            scaler.fit(spectrogram)
+            spectrogram = scaler.transform(spectrogram)
 
+            # one-hot our labels for categorization
+            # label = K.one_hot(K.cast(label, 'uint8'),
+            #               num_classes=self.num_classes)
 
             batch_spectrograms.append(spectrogram)
             batch_labels.append(label)

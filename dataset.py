@@ -52,9 +52,11 @@ def load_dataset(csv_path: Path, wav_dir: Path, sample_limit=None):
             continue
 
         # TODO: experiment using multiple labels
-        labels = float(line[cols["Head"]])
-        # labels = np.array([float(line[cols[label_key]])
-        #                    for label_key in label_keys], dtype=np.float32)
+        
+        # use sum of all of the columns 
+        # labels = sum([float(line[cols[label_key]]) for label_key in label_keys])
+
+        labels = float(line[cols['Openess']])
         
         filename_lst.append(fullpath)
         labels_lst.append(labels)
